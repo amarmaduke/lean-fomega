@@ -1,0 +1,16 @@
+name = "LeanFomega"
+version = "0.1.0"
+defaultTargets = ["leanfomega"]
+
+[[require]]
+name = "lean-subst"
+scope = "amarmaduke"
+git = "https://github.com/amarmaduke/lean-subst"
+rev = "5cf3f3ab82b93477975e406ae4523612616cfc5a"
+
+[[lean_lib]]
+name = "LeanFomega"
+
+[[lean_exe]]
+name = "leanfomega"
+root = "Main"
