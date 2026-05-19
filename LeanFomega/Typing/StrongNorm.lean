@@ -25,12 +25,12 @@ mutual
     SnNor S2 (K::Δ) Γ⟨.add 1⟩ t P ->
     SnNor S1 Δ Γ (Λ[K] t) (∀[K] P)
   | neu :
-    SnNeu S Δ Γ A K ->
-    SnNor S Δ Γ A K
+    SnNeu S Δ Γ t A ->
+    SnNor S Δ Γ t A
   | red :
-    SnRed Δ S Γ A A' ->
-    SnNor Δ S Γ A' K ->
-    SnNor Δ S Γ A K
+    SnRed S Δ Γ t t' ->
+    SnNor S Δ Γ t' A ->
+    SnNor S Δ Γ t A
 
   inductive Typing.SnNeu : LR -> TSet
   | var :
@@ -50,7 +50,7 @@ mutual
     SnNor S1 Δ Γ t A ->
     SnRed S2 Δ Γ ((λ[A] b) • t) b[su t::+0]
   | tbeta :
-    SnRed S Δ Γam ((Λ[K] b) •[t]) b[su t::+0:Ty]
+    SnRed S Δ Γ ((Λ[K] b) •[t]) b[su t::+0:Ty]
   | app :
     SnRed S1 Δ Γ f f' ->
     SnRed S2 Δ Γ (f • a) (f' • a)
@@ -60,38 +60,42 @@ mutual
 end
 
 mutual
-  theorem Typing.SnNor.rename (m : Δ1 -⟨r⟩> Δ2) : SnNor S Δ1 A K -> SnNor S Δ2 A[r] K := sorry
+  theorem Typing.SnNor.rename {Γ1 Γ2 : List Ty} (m : Γ1 -⟨r⟩> Γ2)
+    : SnNor S Δ Γ1 t A -> SnNor S Δ Γ2 t[r] A := sorry
 
-  theorem Typing.SnNeu.rename (m : Δ1 -⟨r⟩> Δ2) : SnNeu S Δ1 A K -> SnNeu S Δ2 A[r] K := sorry
+  theorem Typing.SnNeu.rename {Γ1 Γ2 : List Ty} (m : Γ1 -⟨r⟩> Γ2)
+    : SnNeu S Δ Γ1 t A -> SnNeu S Δ Γ2 t[r] A := sorry
 
-  theorem Typing.SnRed.rename (m : Δ1 -⟨r⟩> Δ2) : SnRed S Δ1 A B -> SnRed S Δ2 A[r] B[r] := sorry
+  theorem Typing.SnRed.rename {Γ1 Γ2 : List Ty} (m : Γ1 -⟨r⟩> Γ2)
+    : SnRed S Δ Γ1 t t' -> SnRed S Δ Γ2 t[r] t'[r] := sorry
 end
 
 @[simp]
-def 𝒱ₖ : Kind -> List Kind -> Ty -> Prop
-| A -:> B, Δ, λ[_] t => ∀ {a}, Typing.SnNor (𝒱ₖ A) Δ a A -> Typing.SnNor (𝒱ₖ B) Δ t[su a::+0] B
-| _, _, _ => False
+def 𝒱 : Ty -> List Kind -> List Ty -> Term -> Prop
+| A -:> B, Δ, Γ, λ[_] t => ∀ {a}, Typing.SnNor (𝒱 A) Δ Γ a A -> Typing.SnNor (𝒱 B) Δ Γ t[su a::+0] B
+| _, _, _, _ => False
 
-structure Typing.SemSubst (Δ1 Δ2 : List Kind) (σ : Subst Ty) where
-  act : ∀ {i T}, Δ1[i]? = some T -> SnNor (𝒱ₖ T) Δ2 (σ.act i) T
+structure Typing.SemSubst (Δ : List Kind) (Γ1 Γ2 : List Ty) (σ : Subst Term) where
+  act : ∀ {i T}, Γ1[i]? = some T -> SnNor (𝒱 T) Δ Γ2 (σ.act i) T
 
-notation:35 Γ:35 " -⟦" σ "⟧> " Δ:35 => Typing.SemSubst Γ Δ σ
+notation:35 Δ " ⊢ " Γ1:35 " -⟦" σ "⟧> " Γ2:35 => Typing.SemSubst Δ Γ1 Γ2 σ
 
-theorem Typing.SemSubst.lift (m : Γ -⟦σ⟧> Δ) A : A::Γ -⟦σ.lift⟧> A::Δ := sorry
+theorem Typing.SemSubst.lift (m : Δ ⊢ Γ1 -⟦σ⟧> Γ2) A : Δ ⊢ A::Γ1 -⟦σ.lift⟧> A::Γ2 := sorry
 
-theorem Typing.SemSubst.compose (m1 : Γ -⟦σ⟧> Δ) (m2 : Δ -⟨r⟩> Ξ) : Γ -⟦σ ∘ r.to⟧> Ξ := sorry
+theorem Typing.SemSubst.compose (m1 : Δ ⊢ Γ1 -⟦σ⟧> Γ2) (m2 : Γ2 -⟨r⟩> Γ3)
+  : Δ ⊢ Γ1 -⟦σ ∘ r.to⟧> Γ3 := sorry
 
 @[simp]
-def SemanticTyping (Δ1 : List Kind) (A : Ty) (K : Kind) :=
-  ∀ {σ Δ2}, Δ1 -⟦σ⟧> Δ2 -> Typing.SnNor (𝒱ₖ K) Δ2 A[σ] K
+def SemanticTyping (Δ : List Kind) (Γ1 : List Ty) (t : Term) (A : Ty) :=
+  ∀ {σ Γ2}, Δ ⊢ Γ1 -⟦σ⟧> Γ2 -> Typing.SnNor (𝒱 A) Δ Γ2 t[σ] A
 
-notation:170 Γ:170 " ⊨ₖ " t:170 " : " A:170 => SemanticTyping Γ t A
+notation:170 Δ:170 "&" Γ:170 " ⊨ " t:170 " : " A:170 => SemanticTyping Δ Γ t A
 
-theorem Typing.fundamental : Δ ⊢ₖ A : K -> Δ ⊨ₖ A : K
-| var j, σ, Δ2, h => sorry
-| lam j, σ, Δ2, h => sorry
-| app j1 j2, σ, Δ2, h => sorry
-| all j, σ, Δ2, h => .all $ j.fundamental $ h.lift _
-| arrow j1 j2, σ, Δ2, h => .arrow (j1.fundamental h) (j2.fundamental h)
+theorem Typing.fundamental : Δ&Γ ⊢ t : A -> Δ&Γ ⊨ t : A
+| var j1 j2, σ, Γ2, h => sorry
+| lam j1 j2, σ, Γ2, h => sorry
+| app j1 j2, σ, Γ2, h => sorry
+| tlam j, σ, Γ2, h => sorry
+| tapp j1 j2 e, σ, Γ2, h => sorry
 
 end LeanFomega
