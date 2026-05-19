@@ -70,6 +70,8 @@ structure Kinding.SemSubst (Δ1 Δ2 : List Kind) (σ : Subst Ty) where
 
 notation:35 Γ:35 " -⟦" σ "⟧> " Δ:35 => Kinding.SemSubst Γ Δ σ
 
+theorem Kinding.SemSubst.id : Δ -⟦+0⟧> Δ := sorry
+
 theorem Kinding.SemSubst.lift (m : Γ -⟦σ⟧> Δ) A : A::Γ -⟦σ.lift⟧> A::Δ := sorry
 
 theorem Kinding.SemSubst.compose (m1 : Γ -⟦σ⟧> Δ) (m2 : Δ -⟨r⟩> Ξ) : Γ -⟦σ ∘ r.to⟧> Ξ := sorry
