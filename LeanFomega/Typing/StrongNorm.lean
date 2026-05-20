@@ -122,6 +122,7 @@ theorem Typing.fundamental : Δ&Γ ⊢ t : A -> Δ&Γ ⊨ t : A
   let j1' := j1.fundamental h
   let j2' := j2.fundamental .id
   SemanticTyping.tapp rfl rfl j1' j2' |> cast (by simp [e])
+| conv j1 cv j2, σ, Γ2, h => sorry
 
 theorem Typing.SnNeu.consistency_lemma :
   Γ = [] ->
@@ -131,18 +132,23 @@ theorem Typing.SnNeu.consistency_lemma :
 | e, .var h, j => by grind
 | e, .app fn an, (.app fj aj) => fn.consistency_lemma e fj
 | e1, .tapp fn e2, (.tapp fj aj e3) => fn.consistency_lemma e1 fj
+| e, tn, .conv tj cv Bj => tn.consistency_lemma e tj
 
 theorem Typing.SnNor.consistency_lemma :
   Γ = [] ->
+  C =t= (∀[★] t#0) ->
   SnNor T Δ Γ t A ->
-  Δ&Γ ⊢ t : (∀[★] t#0) ->
+  Δ&Γ ⊢ t : C ->
   False
-| e, .tlam (.neu tn), .tlam tj => tn.consistency_lemma (by simp [e]) tj
-| e, .tlam (.red tr tn), .tlam tj => tn.consistency_lemma (by simp [e]) sorry
-| e, .neu tn, j3 => tn.consistency_lemma e j3
-| e, .red tr tn, j3 => tn.consistency_lemma e sorry
+| e, cv, .tlam tn, (.tlam tj) => sorry
+| e, cv1, .tlam tn, (.conv tj cv2 Bj) => sorry
+| e, cv, .lam lr tn, tj => sorry
+-- | e, .tlam (.neu tn), .tlam tj => tn.consistency_lemma (by simp [e]) tj
+-- | e, .tlam (.red tr tn), .tlam tj => tn.consistency_lemma (by simp [e]) sorry
+| e, cv, .neu tn, j3 => tn.consistency_lemma e j3
+| e, cv, .red tr tn, j3 => tn.consistency_lemma e cv sorry
 
 theorem Typing.consistency : ¬ (Δ&[] ⊢ t : (∀[★] t#0))
-| j => SnNor.consistency_lemma rfl (j.fundamental $ SemSubst.id) (j |> cast (by simp))
+| j => SnNor.consistency_lemma rfl Conv.refl (j.fundamental $ SemSubst.id) (j |> cast (by simp))
 
 end LeanFomega

@@ -53,6 +53,7 @@ def Typing.rename_type {Δ1 Δ2 : List Kind} (m : Δ1 -⟨r⟩> Δ2)
     rw [Subst.apply_stable r _ rfl]
     simp
   tapp (P := P⟨r.lift⟩) (j1.rename_type m) (j2.rename m) e'
+| conv j1 cv j2 => sorry
 
 def Typing.rename {Γ1 Γ2 : List Ty} (m : Γ1 -⟨r⟩> Γ2)
   : Δ&Γ1 ⊢ t : A -> Δ&Γ2 ⊢ t⟨r⟩ : A
@@ -61,5 +62,6 @@ def Typing.rename {Γ1 Γ2 : List Ty} (m : Γ1 -⟨r⟩> Γ2)
 | app j1 j2 => app (j1.rename m) (j2.rename m)
 | tlam j => tlam $ j.rename $ m.rename (Ren.add 1)
 | tapp j1 j2 e => tapp (j1.rename m) j2 e
+| conv j1 cv j2 => sorry
 
 end LeanFomega

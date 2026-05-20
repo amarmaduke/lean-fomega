@@ -39,6 +39,7 @@ theorem Typing.subst (m : Δ ⊢ₛ Γ1 -[σ]> Γ2) : Δ&Γ1 ⊢ t : A -> Δ&Γ2
   have m' : (K::Δ) ⊢ₛ Γ1⟨Ren.add 1⟩ -[σ ◾ +1@Ty]> Γ2⟨Ren.add 1⟩ := sorry
   tlam (j.subst m')
 | tapp j1 j2 e => tapp (j1.subst m) j2 e
+| conv j1 cv j2 => sorry
 
 theorem Typing.beta : Δ&(A::Γ) ⊢ b : B -> Δ&Γ ⊢ t : A -> Δ&Γ ⊢ b[su t::+0] : B
 | j1, j2 => j1.subst $ .su j2 .id

@@ -1,5 +1,6 @@
 
 import LeanFomega.Term
+import LeanFomega.Reduction
 open LeanSubst
 
 namespace LeanFomega
@@ -46,7 +47,11 @@ inductive Typing : List Kind -> List Ty -> Term -> Ty -> Prop where
   Δ ⊢ₖ a : K ->
   P' = P[su a::+0] ->
   Typing Δ Γ (f •[a]) P'
-
+| conv :
+  Typing Δ Γ t A ->
+  A =t= B ->
+  Δ ⊢ₖ B : K ->
+  Typing Δ Γ t B
 
 notation:170 Δ:170 "&" Γ:170 " ⊢ " t:170 " : " A:170 => Typing Δ Γ t A
 
